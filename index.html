@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Data Overview</title>
+    <meta name="description" content="Display world data statistics.">
+    <meta name="author" content="Jiaxi Jiang">
+    <meta name="keywords" content="world data, statistics, table, country information">
+    
+    <!-- Link to CSS Reset -->
+    <link rel="stylesheet" href="css/reset.css">
+    
+    <!-- Google Fonts - Arial or Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap" rel="stylesheet">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        /* Header styling */
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1em;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        header .logo {
+            height: 40px;
+            margin-right: 20px;
+        }
+
+        nav {
+            background-color: #333;
+            overflow: hidden;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+
+        nav ul li a {
+            color: #f2f2f2;
+            text-decoration: none;
+            padding: 14px 16px;
+            display: block;
+            text-align: center;
+        }
+
+        nav ul li a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        /* Main content */
+        .container, .main {
+            flex: 1;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .intro h1 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .display-options {
+            margin: 20px 0;
+        }
+
+        .display-options label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .display-options button {
+            margin: 5px;
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .display-options button:hover {
+            background-color: #45a049;
+        }
+
+        /* Table styling */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Footer styling */
+        footer {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header with logo and navigation menu -->
+    <header>
+        <img src="img/logo.svg" alt="Logo" class="logo">
+        <nav>
+            <ul>
+                <li><a href="#about"><span class="material-icons">info</span> About</a></li>
+                <li><a href="#data"><span class="material-icons">table_chart</span> Browse Data</a></li>
+                <li><a href="#dashboards"><span class="material-icons">dashboard</span> Dashboards</a></li>
+                <li><a href="#contact"><span class="material-icons">contact_support</span> Support & Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main content -->
+    <main class="container">
+        <section class="intro">
+            <h1>World Data Overview</h1>
+            <p>Explore various statistics about countries around the world. Use the table below to browse and sort data, or customize the view by showing and hiding columns.</p>
+        </section>
+        
+        <!-- Display options for showing/hiding columns -->
+        <section class="display-options">
+            <label>Show/Hide Columns:</label>
+            <button onclick="toggleColumn('birth_rate')">Birth Rate</button>
+            <button onclick="toggleColumn('children_per_woman')">Children/Woman</button>
+            <button onclick="toggleColumn('cellphones')">Cellphones/100</button>
+            <button onclick="toggleColumn('electric_usage')">Electric Usage</button>
+            <button onclick="toggleColumn('internet_usage')">Internet Usage</button>
+        </section>
+        
+        <!-- Data table for displaying country statistics -->
+        <div class="table-container">
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Country</th>
+                        <th class="birth_rate">Birth Rate</th>
+                        <th class="children_per_woman">Children/Woman</th>
+                        <th class="cellphones">Cellphones/100</th>
+                        <th class="electric_usage">Electric Usage</th>
+                        <th class="internet_usage">Internet Usage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- CSV data will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Footer with creator information -->
+    <footer>
+        <p>© 2024 World Data Platform - Created by Jiaxi Jiang</p>
+    </footer>
+
+    <!-- JavaScript for toggling column visibility and loading CSV -->
+    <script>
+        function toggleColumn(columnClass) {
+            const cells = document.querySelectorAll(`.${columnClass}`);
+            cells.forEach(cell => {
+                cell.style.display = cell.style.display === 'none' ? '' : 'none';
+            });
+        }
+
+        // Load CSV data and populate table
+        async function loadCSVData() {
+            const response = await fetch('data/data.csv');
+            const data = await response.text();
+            const rows = data.split('\n').slice(1); // Skip the header row
+            
+            const tableBody = document.querySelector('#data-table tbody');
+            rows.forEach(row => {
+                const cols = row.split(',');
+                const tr = document.createElement('tr');
+                cols.forEach((col, index) => {
+                    const td = document.createElement('td');
+                    td.textContent = col;
+                    
+                    // Add class for toggle functionality
+                    if (index === 2) td.classList.add('birth_rate');
+                    else if (index === 3) td.classList.add('children_per_woman');
+                    else if (index === 4) td.classList.add('cellphones');
+                    else if (index === 5) td.classList.add('electric_usage');
+                    else if (index === 6) td.classList.add('internet_usage');
+                    
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Call function to load data when page loads
+        document.addEventListener('DOMContentLoaded', loadCSVData);
+    </script>
+</body>
+</html>
