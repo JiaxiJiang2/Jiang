@@ -1,0 +1,39 @@
+/* reset.css */
+
+/* 通用重置 */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    line-height: 1.5;
+    font-family: Arial, sans-serif;
+}
+
+/* 移除列表的默认样式 */
+ul, ol {
+    list-style: none;
+}
+
+/* 移除链接的默认下划线 */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* 表格样式重置 */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+/* 图片样式重置 */
+img {
+    max-width: 100%;
+    height: auto;
+}

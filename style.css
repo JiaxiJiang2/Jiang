@@ -1,0 +1,149 @@
+/* style.css */
+
+/* 基本布局和页面样式 */
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header 和 Footer 样式 */
+header, footer {
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    padding: 1em;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8em;
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.9em;
+}
+
+/* 导航栏样式 */
+nav {
+    background-color: #333;
+    overflow: hidden;
+}
+
+nav a {
+    float: left;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 1em;
+}
+
+nav a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+/* 主内容样式 */
+.container {
+    flex: 1;
+    padding: 20px;
+}
+
+/* 搜索框样式 */
+.text-box {
+    margin-bottom: 20px;
+}
+
+.text-box label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.text-box input {
+    padding: 8px;
+    font-size: 1em;
+    width: 50%;
+    max-width: 300px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* 表格样式 */
+table {
+    width: 100%;
+    border: 1px solid #ddd;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tbody tr:hover {
+    background-color: #e0e0e0;
+}
+
+/* 显示/隐藏列按钮样式 */
+.display-options {
+    margin-bottom: 20px;
+}
+
+.display-options label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+button {
+    margin-right: 10px;
+    padding: 8px 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    nav a {
+        padding: 10px 12px;
+        font-size: 0.9em;
+    }
+
+    .text-box input {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.5em;
+    }
+
+    button {
+        padding: 6px 10px;
+        font-size: 0.8em;
+    }
+}
