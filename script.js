@@ -1,5 +1,6 @@
 // script.js
 
+
 function toggleColumn(columnClass, toggleId) {
     const cells = document.querySelectorAll(`.${columnClass}`);
     const toggleElement = document.getElementById(toggleId);
@@ -39,5 +40,38 @@ async function loadCSVData() {
         tableBody.appendChild(tr);
     });
 }
+
+function toggleMenu() {
+    const navMenu = document.querySelector('nav');
+    navMenu.classList.toggle('show-menu');
+}
+
+let ascending = true;
+
+function sortTableByCountry() {
+    const table = document.getElementById("data-table");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+
+    rows.sort((a, b) => {
+        const countryA = a.cells[1].textContent.trim().toLowerCase();
+        const countryB = b.cells[1].textContent.trim().toLowerCase();
+        
+        if (ascending) {
+            return countryA.localeCompare(countryB);
+        } else {
+            return countryB.localeCompare(countryA);
+        }
+    });
+
+    tbody.innerHTML = "";
+    rows.forEach(row => tbody.appendChild(row));
+
+    ascending = !ascending;
+
+    document.querySelector(".asc-icon").classList.toggle("active", ascending);
+    document.querySelector(".desc-icon").classList.toggle("active", !ascending);
+}
+
 
 document.addEventListener('DOMContentLoaded', loadCSVData);

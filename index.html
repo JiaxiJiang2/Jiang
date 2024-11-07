@@ -19,7 +19,12 @@
 <body>
 
     <header>
-        <img src="img/logo.svg" alt="Logo" class="logo">
+        <a href="#"><img src="img/logo.svg" alt="Logo" class="logo"></a>
+    
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <span class="material-icons">menu</span>
+        </button>
+        
         <nav>
             <ul>
                 <li><a href="#about"><span class="material-icons">info</span> About</a></li>
@@ -28,23 +33,20 @@
                 <li><a href="#contact"><span class="material-icons">contact_support</span> Support & Contact</a></li>
             </ul>
         </nav>
+        <div id="nav-placeholder" style="display: none; height: auto;"></div>
     </header>
+    
 
+    <h1>World Data Overview...</h1>
     <main class="container">
     <section class="intro">
-        <h1>World Data Overview</h1>
         <div class="intro-content">
             <p>
-                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-            </p>
-            <p>
-                <a href="https://www.loremipsum.de" target="_blank">https://www.loremipsum.de</a>
+                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. From: <a href="https://www.loremipsum.de" target="_blank">www.loremipsum.de</a>
             </p>
         </div>
     </section>
 
-
-        
         <section class="display-options">
             <label>Show/Hide Columns:</label>
             <span id="toggle-birth_rate" onclick="toggleColumn('birth_rate', 'toggle-birth_rate')">Birth Rate</span> |
@@ -59,7 +61,13 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Country</th>
+                        <th>
+                            Country
+                            <span class="sort-icons" onclick="sortTableByCountry()">
+                                <span class="asc-icon">▲</span>
+                                <span class="desc-icon">▼</span>
+                            </span>
+                        </th>
                         <th class="birth_rate">Birth Rate</th>
                         <th class="children_per_woman">Children/Woman</th>
                         <th class="cellphones">Cellphones/100</th>
