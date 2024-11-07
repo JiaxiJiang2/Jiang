@@ -43,8 +43,17 @@ async function loadCSVData() {
 
 function toggleMenu() {
     const navMenu = document.querySelector('nav');
+    const mainContent = document.querySelector('main'); // 假设正文部分用 <main> 标签包裹
+
     navMenu.classList.toggle('show-menu');
+    
+    if (navMenu.classList.contains('show-menu')) {
+        mainContent.style.marginTop = navMenu.offsetHeight + "px"; // 将正文推到菜单下方
+    } else {
+        mainContent.style.marginTop = "60px"; // 恢复默认的 margin-top，与 header 对齐
+    }
 }
+
 
 let ascending = true;
 
