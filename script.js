@@ -1,51 +1,43 @@
-// Function to load data from CSV file and populate the table
-document.addEventListener("DOMContentLoaded", function() {
-    loadCSVData("data/data.csv");
-});
+// script.js
 
-function loadCSVData(csvFilePath) {
-    fetch(csvFilePath)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Network response was not ok " + response.statusText);
-            }
-            return response.text();
-        })
-        .then(data => {
-            populateTable(data);
-        })
-        .catch(error => console.error("Error loading CSV file:", error));
+function toggleColumn(columnClass, toggleId) {
+    const cells = document.querySelectorAll(`.${columnClass}`);
+    const toggleElement = document.getElementById(toggleId);
+    
+    cells.forEach(cell => {
+        cell.style.display = cell.style.display === 'none' ? '' : 'none';
+    });
+
+    if (toggleElement.classList.contains('strikethrough')) {
+        toggleElement.classList.remove('strikethrough');
+    } else {
+        toggleElement.classList.add('strikethrough');
+    }
 }
 
-// Function to populate the table with CSV data
-function populateTable(data) {
-    const rows = data.split("\n").slice(1); // Split data into rows, skipping the header
-    const tableBody = document.querySelector("#data-table tbody");
+async function loadCSVData() {
+    const response = await fetch('data/data.csv');
+    const data = await response.text();
+    const rows = data.split('\n').slice(1);
     
+    const tableBody = document.querySelector('#data-table tbody');
     rows.forEach(row => {
-        const cells = row.split(",");
-        const tr = document.createElement("tr");
-
-        // Create table cells for each data item
-        cells.forEach((cellData, index) => {
-            const td = document.createElement("td");
-            td.textContent = cellData.trim();
+        const cols = row.split(',');
+        const tr = document.createElement('tr');
+        cols.forEach((col, index) => {
+            const td = document.createElement('td');
+            td.textContent = col.trim();
             
-            // Add class for toggle functionality based on column index
-            if (index === 1) td.classList.add("population");
-            if (index === 2) td.classList.add("gdp");
-
+            if (index === 2) td.classList.add('birth_rate');
+            else if (index === 3) td.classList.add('children_per_woman');
+            else if (index === 4) td.classList.add('cellphones');
+            else if (index === 5) td.classList.add('electric_usage');
+            else if (index === 6) td.classList.add('internet_usage');
+            
             tr.appendChild(td);
         });
-
         tableBody.appendChild(tr);
     });
 }
 
-// Function to toggle the visibility of columns
-function toggleColumn(columnClass) {
-    const cells = document.querySelectorAll(`.${columnClass}`);
-    cells.forEach(cell => {
-        cell.style.display = cell.style.display === 'none' ? '' : 'none';
-    });
-}
+document.addEventListener('DOMContentLoaded', loadCSVData);
