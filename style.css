@@ -59,23 +59,30 @@ body {
 }
 
 @media (max-width: 1200px) {
-    nav ul {
-        display: none;
-        flex-direction: column;
+    header {
         position: relative;
+    }
+
+    nav {
+        position: fixed;
+        top: 60px;
+        left: 0;
         width: 100%;
         background-color: #f2f2f2;
         border-top: 1px solid #ddd;
-        padding: 10px 0;
-        margin-top: 0;
+        display: none;
+        z-index: 1000;
     }
 
-    .menu-toggle {
+    nav.show-menu {
         display: block;
     }
 
-    nav.show-menu ul {
-        display: flex;
+    nav ul {
+        list-style: none;
+        flex-direction: column;
+        padding: 10px 0;
+        margin: 0;
     }
 
     nav ul li {
@@ -87,8 +94,20 @@ body {
         padding: 10px 16px;
         display: block;
         width: 100%;
+        color: #666;
+        text-decoration: none;
+    }
+
+    nav ul li a:hover {
+        background-color: #cccccc;
+        color: #000000;
+    }
+
+    .menu-toggle {
+        display: block;
     }
 }
+
 
 .table-container {
     overflow-x: auto;
