@@ -1,6 +1,3 @@
-// script.js
-
-
 function toggleColumn(columnClass, toggleId) {
     const cells = document.querySelectorAll(`.${columnClass}`);
     const toggleElement = document.getElementById(toggleId);
@@ -15,6 +12,9 @@ function toggleColumn(columnClass, toggleId) {
         toggleElement.classList.add('strikethrough');
     }
 }
+
+let originalOrder = [];
+let isOriginalOrder = true;
 
 async function loadCSVData() {
     const response = await fetch('data/data.csv');
@@ -38,49 +38,38 @@ async function loadCSVData() {
             tr.appendChild(td);
         });
         tableBody.appendChild(tr);
+        originalOrder.push(tr);
     });
+
+    document.querySelector(".sort-icons").addEventListener("click", toggleSortOrder);
 }
 
 function toggleMenu() {
     const navMenu = document.querySelector('nav');
-    const mainContent = document.querySelector('main'); // 假设正文部分用 <main> 标签包裹
-
     navMenu.classList.toggle('show-menu');
-    
-    if (navMenu.classList.contains('show-menu')) {
-        mainContent.style.marginTop = navMenu.offsetHeight + "px"; // 将正文推到菜单下方
+}
+
+function toggleSortOrder() {
+    const tbody = document.querySelector("#data-table tbody");
+
+    if (isOriginalOrder) {
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        rows.sort((a, b) => {
+            const numberA = parseInt(a.cells[0].textContent.trim(), 10);
+            const numberB = parseInt(b.cells[0].textContent.trim(), 10);
+            return numberB - numberA;
+        });
+        tbody.innerHTML = "";
+        rows.forEach(row => tbody.appendChild(row));
     } else {
-        mainContent.style.marginTop = "60px"; // 恢复默认的 margin-top，与 header 对齐
+        tbody.innerHTML = "";
+        originalOrder.forEach(row => tbody.appendChild(row.cloneNode(true)));
     }
+
+    isOriginalOrder = !isOriginalOrder;
+
+    document.querySelector(".asc-icon").classList.toggle("active", isOriginalOrder);
+    document.querySelector(".desc-icon").classList.toggle("active", !isOriginalOrder);
 }
-
-
-let ascending = true;
-
-function sortTableByCountry() {
-    const table = document.getElementById("data-table");
-    const tbody = table.querySelector("tbody");
-    const rows = Array.from(tbody.querySelectorAll("tr"));
-
-    rows.sort((a, b) => {
-        const countryA = a.cells[1].textContent.trim().toLowerCase();
-        const countryB = b.cells[1].textContent.trim().toLowerCase();
-        
-        if (ascending) {
-            return countryA.localeCompare(countryB);
-        } else {
-            return countryB.localeCompare(countryA);
-        }
-    });
-
-    tbody.innerHTML = "";
-    rows.forEach(row => tbody.appendChild(row));
-
-    ascending = !ascending;
-
-    document.querySelector(".asc-icon").classList.toggle("active", ascending);
-    document.querySelector(".desc-icon").classList.toggle("active", !ascending);
-}
-
 
 document.addEventListener('DOMContentLoaded', loadCSVData);

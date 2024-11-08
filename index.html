@@ -36,7 +36,6 @@
         <div id="nav-placeholder" style="display: none; height: auto;"></div>
     </header>
     
-
     <h1>World Data Overview...</h1>
     <main class="container">
     <section class="intro">
@@ -48,7 +47,7 @@
     </section>
 
         <section class="display-options">
-            <label>Show/Hide Columns:</label>
+            <label>Show/Hide:</label>
             <span id="toggle-birth_rate" onclick="toggleColumn('birth_rate', 'toggle-birth_rate')">Birth Rate</span> |
             <span id="toggle-children_per_woman" onclick="toggleColumn('children_per_woman', 'toggle-children_per_woman')">Children/Woman</span> |
             <span id="toggle-cellphones" onclick="toggleColumn('cellphones', 'toggle-cellphones')">Cellphones/100</span> |
@@ -64,7 +63,7 @@
                         <th>
                             Country
                             <span class="sort-icons" onclick="sortTableByCountry()">
-                                <span class="asc-icon">▲</span>
+                                <span class="asc-icon active">▲</span>
                                 <span class="desc-icon">▼</span>
                             </span>
                         </th>
@@ -79,6 +78,15 @@
                 </tbody>
             </table>
         </div>
+
+        <section class="display-options">
+            <label>Show/Hide:</label>
+            <span id="toggle-birth_rate" onclick="toggleColumn('birth_rate', 'toggle-birth_rate')">Birth Rate</span> |
+            <span id="toggle-children_per_woman" onclick="toggleColumn('children_per_woman', 'toggle-children_per_woman')">Children/Woman</span> |
+            <span id="toggle-cellphones" onclick="toggleColumn('cellphones', 'toggle-cellphones')">Cellphones/100</span> |
+            <span id="toggle-electric_usage" onclick="toggleColumn('electric_usage', 'toggle-electric_usage')">Electric Usage</span> |
+            <span id="toggle-internet_usage" onclick="toggleColumn('internet_usage', 'toggle-internet_usage')">Internet Usage</span>
+        </section>
     </main>
 
     <footer>
