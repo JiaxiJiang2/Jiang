@@ -9,11 +9,17 @@ body {
 }
 
 header {
+    position: fixed;
     background: linear-gradient(to bottom, #666666, #f2f2f2);
     padding: 10px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    border-bottom: 1px solid #ababab;
+}
+
+nav ul li:not(:last-child) {
+    border-right: 1px solid #ababab;
 }
 
 header .logo {
@@ -64,8 +70,8 @@ body {
     }
 
     nav {
-        position: fixed;
-        top: 60px;
+        position: absolute;
+        top: 100%;
         left: 0;
         width: 100%;
         background-color: #f2f2f2;
@@ -104,6 +110,7 @@ body {
     .menu-toggle {
         display: block;
     }
+
 }
 
 .table-container {
@@ -129,6 +136,7 @@ th, td {
 th {
     background-color: #f2f2f2;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 tbody tr:nth-child(even) {
@@ -178,7 +186,7 @@ nav ul {
 
 nav ul li {
     display: flex;
-    flex: 1;
+    flex: none;
 }
 
 nav ul li a {
@@ -269,11 +277,16 @@ h1 {
     margin: 20px;
     box-sizing: border-box;
     background-color: transparent;
-    border-width: 2px;
-    border-style: solid;
-    border-image: linear-gradient(to bottom, rgb(56, 209, 56), rgb(182, 182, 182)) 1;
+    border-top: 1.5px solid lightgreen;
+    border-right: 1.5px solid lightgrey;
+    border-bottom: 1.5px solid lightgrey;
+    border-left: 1.5px solid lightgrey;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
     overflow: hidden;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 
 .intro-content {
     column-count: 1;
@@ -351,23 +364,33 @@ a:hover {
 
 table {
     width: 100%;
-    border: 1px solid #ddd;
+    border-collapse: collapse;
     margin-top: 20px;
+    box-sizing: border-box;
+    border: none;
+}
+
+thead tr:first-child th {
+    background-color: transparent;
 }
 
 th, td {
     padding: 12px;
     text-align: left;
-    border: 1px solid #ddd;
+    border: none;
+}
+
+thead tr {
+    border-bottom: 2px solid lightgrey;
 }
 
 th {
-    background-color: #f2f2f2;
+    background-color: none;
     font-weight: bold;
 }
 
 tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background-color: lightgrey;
 }
 
 tbody tr:hover {
@@ -386,21 +409,19 @@ th {
 
 .sort-icons {
     display: inline-flex;
-    flex-direction: column;
+    flex-direction: row;
     margin-left: 5px;
     cursor: pointer;
-    color: #66cc66;
+    color: yellowgreen;
 }
 
 .asc-icon, .desc-icon {
-    font-size: 12px;
+    font-size: 16px;
+    margin: 0 4px;
+    color: yellowgreen;
     line-height: 1;
 }
 
-.sort-icons .asc-icon.active {
-    color: #4CAF50;
-}
-
-.sort-icons .desc-icon.active {
-    color: lightgrey;
+.asc-icon:hover, .desc-icon:hover {
+    color: darkgreen;
 }

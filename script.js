@@ -1,16 +1,14 @@
 function toggleColumn(columnClass, toggleId) {
     const cells = document.querySelectorAll(`.${columnClass}`);
-    const toggleElement = document.getElementById(toggleId);
+    const toggleElements = document.querySelectorAll(`#${toggleId}`);
     
     cells.forEach(cell => {
         cell.style.display = cell.style.display === 'none' ? '' : 'none';
     });
 
-    if (toggleElement.classList.contains('strikethrough')) {
-        toggleElement.classList.remove('strikethrough');
-    } else {
-        toggleElement.classList.add('strikethrough');
-    }
+    toggleElements.forEach(toggleElement => {
+        toggleElement.classList.toggle('strikethrough');
+    });
 }
 
 let originalOrder = [];
@@ -47,6 +45,9 @@ async function loadCSVData() {
 function toggleMenu() {
     const navMenu = document.querySelector('nav');
     navMenu.classList.toggle('show-menu');
+
+    const mainContent = document.querySelector('main.container');
+    mainContent.style.marginTop = navMenu.classList.contains('show-menu');
 }
 
 function toggleSortOrder() {
