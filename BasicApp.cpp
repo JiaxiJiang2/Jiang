@@ -3,6 +3,15 @@
 #include "cinder/gl/gl.h"
 #include "DMXPro.hpp"
 
+/*fs::path path = app::getAssetPath("fixtures.json"); // get file in "assets/"-folder
+if (path.empty()) { // if not available then create empty one
+	path = app::getAssetPath("").string() + "dmx/fixtures.json";
+	writeJson(path, ""); // touch
+}
+
+ci::Json fixtureDescriptions = ci::loadJson(loadFile(D:/Study/4 semester/Cinder - master/samples/BasicApp/DMX))["devices"];
+*/
+
 using namespace ci;
 using namespace ci::app;
 
@@ -29,6 +38,7 @@ class BasicApp : public App {
 
 	DMXProRef mDmxDevice;
 	float mPan = 0.0f;
+	float mTilt = 0.0f;
 	int startAddress = 360;
 };
 
@@ -37,11 +47,27 @@ void prepareSettings( BasicApp::Settings* settings )
 	settings->setMultiTouchEnabled( false );
 }
 
-void BasicApp::mouseDrag( MouseEvent event )
+void BasicApp::mouseDrag(MouseEvent event)
 {
-	// Store the current mouse position in the list.
-	mPoints.push_back( event.getPos() );
+	// 记录当前鼠标位置 record mouse position
+	mPoints.push_back(event.getPos());
+
+	// 将鼠标位置映射Position Mapping到 DMX 范围 (0..255)
+	float normalizedX = static_cast<float>(event.getX()) / getWindowWidth();
+	float normalizedY = static_cast<float>(event.getY()) / getWindowHeight();
+
+	mPan = normalizedX * 255.0f; // mapping将X映射到 Pan
+	mTilt = normalizedY * 255.0f; // mapping将Y映射到 Tilt
+
+	//每一个灯的mapping的轨道不一样（参考json文件）
+
+	// 更新 DMX 通道值
+	if (mDmxDevice) {
+		mDmxDevice->setValue(mPan, startAddress + 0); // 更新 Pan chanel
+		mDmxDevice->setValue(mTilt, startAddress + 2); // 更新 Tilt chanel
+	}
 }
+
 
 void BasicApp::keyDown( KeyEvent event )
 {
@@ -89,12 +115,15 @@ void BasicApp::draw()
 
 void BasicApp::update()
 {
-	if (mDmxDevice) {
+	/*if (mDmxDevice) {
 		
-		mPan += 0.2f; // 0..255
+		mPan += 0.2f; // 0..255 灯水平旋转 Light horizontal rotation
 		mPan = fmodf(mPan, 255.0f);
 		mDmxDevice->setValue(mPan, startAddress + 0);
-	}
+	}*/
+
+
+
 }
 
 void BasicApp::setup()
@@ -104,7 +133,8 @@ void BasicApp::setup()
 	if (devices.size() > 0) {
 		mDmxDevice = DMXPro::create(devices[0]);
 		mDmxDevice->setValue(5, startAddress + 5);
-		mDmxDevice->setValue(70, startAddress + 10);//��ɫw �ο�element�� 
+		mDmxDevice->setValue(70, startAddress + 8);//颜色chanel 参考json里
+
 	}
 }
 
