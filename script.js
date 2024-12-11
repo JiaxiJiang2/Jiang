@@ -116,7 +116,7 @@ function updateCharts(data, chart1 = null, chart2 = null, attribute = "") {
             .attr("transform", "rotate(-90)")
             .attr("x",-5)
             .attr("y",-5)
-            .style("text-anchor", "end");
+            .style("text-anchor", "middle");
 
         // Add Y-axis for chart 1
         chart1.append("g")
