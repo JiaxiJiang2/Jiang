@@ -80,7 +80,7 @@ function createBarCharts(dataCSV, dataJSON) {
 function updateCharts(data, chart1 = null, chart2 = null, attribute = "") {
     const width = 500;
     const height = 150;
-    const margin = { top: 10, right: 5, bottom: 2, left: 30 };
+    const margin = { top: 10, right: 5, bottom: 50, left: 30 };
 
     if (chart1) {
         // X-axis scale
@@ -113,7 +113,7 @@ function updateCharts(data, chart1 = null, chart2 = null, attribute = "") {
             .attr("transform", `translate(0,${height - margin.bottom})`)
             .call(d3.axisBottom(xScale1))
             .selectAll("text")
-            .attr("transform", "rotate(-90)")
+            .attr("transform", "rotate(0)")
             .attr("x",-5)
             .attr("y",-5)
             .style("text-anchor", "middle");
@@ -127,7 +127,7 @@ function updateCharts(data, chart1 = null, chart2 = null, attribute = "") {
     if (chart2) {
         // X-axis scale
         const xScale2 = d3.scaleBand()
-            .domain(data.map(d => d.name))
+            .domain(data.map(d => d.name.trim()))
             .range([margin.left, width - margin.right])
             .padding(0.2);
 
@@ -159,6 +159,7 @@ function updateCharts(data, chart1 = null, chart2 = null, attribute = "") {
             .attr("x",-5)
             .attr("y",-5)
             .style("text-anchor", "end");
+            
 
         // Add Y-axis for chart 2
         chart2.append("g")
