@@ -11,8 +11,10 @@ document.addEventListener("DOMContentLoaded", () => {
     d3.csv(csvFile).then(dataCSV => {
         dataCSV.forEach(d => {
             for (const key in d) {
-                if (!isNaN(+d[key])) d[key] = +d[key]; // Convert numeric fields
-            }
+                const cleanKey = key.trim();
+                d[cleanKey] = d[key];
+                delete d[key];}
+                
         });
 
         // Load JSON data for the second chart
@@ -79,8 +81,8 @@ function createBarCharts(dataCSV, dataJSON) {
 // Update bar charts
 function updateCharts(data, chart1 = null, chart2 = null, attribute = "") {
     const width = 500;
-    const height = 150;
-    const margin = { top: 10, right: 5, bottom: 50, left: 30 };
+    const height = 230;
+    const margin = { top: 5, right: 5, bottom: 120, left: 30 };
 
     if (chart1) {
         // X-axis scale
@@ -110,13 +112,13 @@ function updateCharts(data, chart1 = null, chart2 = null, attribute = "") {
 
         // Add X-axis for chart 1
         chart1.append("g")
-            .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(xScale1))
-            .selectAll("text")
-            .attr("transform", "rotate(0)")
-            .attr("x",-5)
-            .attr("y",-5)
-            .style("text-anchor", "middle");
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(xScale1))
+        .selectAll("text")
+        .attr("transform", "rotate(-90)") 
+        .attr("x", -5)
+        .attr("y", -5)
+        .style("text-anchor", "end");
 
         // Add Y-axis for chart 1
         chart1.append("g")
@@ -180,7 +182,7 @@ function createMap(data) {
     data.forEach(country => {
         const lat = +country.gps_lat;
         const lon = +country.gps_long;
-
+    
         if (!isNaN(lat) && !isNaN(lon)) {
             const marker = L.marker([lat, lon]).addTo(map);
             marker.bindPopup(`
@@ -189,4 +191,5 @@ function createMap(data) {
             `);
         }
     });
+    
 }
