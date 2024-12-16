@@ -7,64 +7,65 @@ let currentAttribute1 = "birth rate per 1000";
 let currentAttribute2 = "gdp_per_capita";
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Load CSV data for the first chart
+    // load csv data
     d3.csv(csvFile).then(dataCSV => {
-        // Normalize keys to ensure proper mapping
-        dataCSV.forEach(d => {
-            for (const key in d) {
-                const cleanKey = key.trim();
-                d[cleanKey] = isNaN(+d[key]) ? d[key] : +d[key]; // Convert numeric fields
-                if (key !== cleanKey) delete d[key];
-            }
-        });
-
+        dataCSV = cleanData(dataCSV);
         if (!dataCSV || dataCSV.length === 0) {
-            console.error("CSV data is empty or not loaded correctly.");
+            console.error("CSV error");
             return;
         }
 
-        // Load JSON data for the second chart
+        // load json data
         d3.json(jsonFile).then(dataJSON => {
             if (!dataJSON || dataJSON.length === 0) {
-                console.error("JSON data is empty or not loaded correctly.");
+                console.error("JSON error");
                 return;
             }
 
-            populateSelectBoxes(dataCSV, dataJSON); // Populate dropdown options
-            createBarCharts(dataCSV, dataJSON);    // Create bar charts
-            createMap(dataCSV);                   // Create map using CSV data
-        }).catch(err => console.error("Error loading JSON data:", err));
-    }).catch(err => console.error("Error loading CSV data:", err));
+            dataJSON = cleanData(dataJSON);
 
-    // Update the first chart when the first dropdown changes
+            populateSelectBoxes(dataCSV, dataJSON);
+            createVisualizations(dataCSV, dataJSON);
+        }).catch(err => console.error("load json error", err));
+    }).catch(err => console.error("load csv error", err));
+
     document.getElementById("prop_selection1").addEventListener("change", (event) => {
         currentAttribute1 = event.target.value;
         d3.csv(csvFile).then(dataCSV => {
-            updateCharts(dataCSV, d3.select("#bar1"), null, currentAttribute1);
-        }).catch(err => console.error("Error updating first chart:", err));
+            dataCSV = cleanData(dataCSV);
+            updateBarChart(dataCSV, d3.select("#bar1"), currentAttribute1);
+        }).catch(err => console.error("update charts1 error", err));
     });
 
-    // Update the second chart when the second dropdown changes
     document.getElementById("prop_selection2").addEventListener("change", (event) => {
         currentAttribute2 = event.target.value;
         d3.json(jsonFile).then(dataJSON => {
-            updateCharts(dataJSON, null, d3.select("#bar2"), currentAttribute2);
-        }).catch(err => console.error("Error updating second chart:", err));
+            dataJSON = cleanData(dataJSON);
+            updateBarChart(dataJSON, d3.select("#bar2"), currentAttribute2);
+        }).catch(err => console.error("uodate charts2 error", err));
     });
 });
 
-// Populate dropdowns with data attributes
-function populateSelectBoxes(dataCSV, dataJSON) {
-    const attributesCSV = Object.keys(dataCSV[0]).filter(attr => {
-        return !["id", "name", "gps_lat", "gps_long"].includes(attr.trim());
+// data clear
+function cleanData(data) {
+    return data.map(d => {
+        const cleaned = {};
+        for (const key in d) {
+            const cleanKey = key.trim();
+            cleaned[cleanKey] = isNaN(+d[key]) ? d[key].trim() : +d[key];
+        }
+        return cleaned;
     });
+}
 
-    const attributesJSON = Object.keys(dataJSON[0]).filter(attr => {
-        return !["id", "name", "gps_lat", "gps_long"].includes(attr.trim());
-    });
+// pop up window
+function populateSelectBoxes(dataCSV, dataJSON) {
+    const attributesCSV = Object.keys(dataCSV[0]).filter(attr => !["id", "name", "gps_lat", "gps_long"].includes(attr));
+    const attributesJSON = Object.keys(dataJSON[0]).filter(attr => !["id", "name", "gps_lat", "gps_long"].includes(attr));
 
     const select1 = document.getElementById("prop_selection1");
     const select2 = document.getElementById("prop_selection2");
+
     select1.innerHTML = "";
     select2.innerHTML = "";
 
@@ -86,99 +87,59 @@ function populateSelectBoxes(dataCSV, dataJSON) {
     select2.value = currentAttribute2;
 }
 
-// Create bar charts
-function createBarCharts(dataCSV, dataJSON) {
-    updateCharts(dataCSV, d3.select("#bar1"), null, currentAttribute1);
-    updateCharts(dataJSON, null, d3.select("#bar2"), currentAttribute2);
+// Visualisierung
+function createVisualizations(dataCSV, dataJSON) {
+    updateBarChart(dataCSV, d3.select("#bar1"), currentAttribute1);
+    updateBarChart(dataJSON, d3.select("#bar2"), currentAttribute2);
+    createMap(dataCSV);
 }
 
-// Update bar charts
-function updateCharts(data, chart1 = null, chart2 = null, attribute = "") {
+// Update Charts
+function updateBarChart(data, svg, attribute) {
     const width = 500;
-    const height = 230;
-    const margin = { top: 5, right: 5, bottom: 120, left: 30 };
+    const height = 250;
+    const margin = { top: 20, right: 20, bottom: 130, left: 50 };
 
-    const filteredData = data.map(d => ({
-        ...d,
-        [attribute]: +d[attribute] || 0 // Ensure valid numeric data
-    }));
+    const filteredData = data.filter(d => d[attribute] !== undefined && d[attribute] !== null);
 
-    if (chart1) {
-        const xScale1 = d3.scaleBand()
-            .domain(filteredData.map(d => d.name.trim()))
-            .range([margin.left, width - margin.right])
-            .padding(0.2);
+    const xScale = d3.scaleBand()
+        .domain(filteredData.map(d => d.name))
+        .range([margin.left, width - margin.right])
+        .padding(0.2);
 
-        const yScale1 = d3.scaleLinear()
-            .domain([0, d3.max(filteredData, d => d[attribute])])
-            .nice()
-            .range([height - margin.bottom, margin.top]);
+    const yScale = d3.scaleLinear()
+        .domain([0, d3.max(filteredData, d => d[attribute])])
+        .nice()
+        .range([height - margin.bottom, margin.top]);
 
-        chart1.selectAll("*").remove();
+    svg.attr("width", width).attr("height", height).selectAll("*").remove();
 
-        chart1.append("g")
-            .selectAll("rect")
-            .data(filteredData)
-            .join("rect")
-            .attr("class", "bar")
-            .attr("x", d => xScale1(d.name))
-            .attr("y", d => yScale1(d[attribute]))
-            .attr("width", xScale1.bandwidth())
-            .attr("height", d => yScale1(0) - yScale1(d[attribute]));
+    svg.append("g")
+        .selectAll("rect")
+        .data(filteredData)
+        .join("rect")
+        .attr("class", "bar")
+        .attr("x", d => xScale(d.name))
+        .attr("y", d => yScale(d[attribute]))
+        .attr("height", d => yScale(0) - yScale(d[attribute]))
+        .attr("width", xScale.bandwidth())
+        .attr("fill", "steelblue");
 
-        chart1.append("g")
-            .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(xScale1))
-            .selectAll("text")
-            .attr("transform", "rotate(-90)")
-            .attr("x", -5)
-            .attr("y", -5)
-            .style("text-anchor", "end");
+    svg.append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(xScale).tickSizeOuter(0))
+        .selectAll("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -5)
+        .attr("y", -5)
+        .style("text-anchor", "end");
 
-        chart1.append("g")
-            .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(yScale1).tickFormat(d3.format("~s")));
-    }
-
-    if (chart2) {
-        const xScale2 = d3.scaleBand()
-            .domain(filteredData.map(d => d.name.trim()))
-            .range([margin.left, width - margin.right])
-            .padding(0.2);
-
-        const yScale2 = d3.scaleLinear()
-            .domain([0, d3.max(filteredData, d => d[attribute])])
-            .nice()
-            .range([height - margin.bottom, margin.top]);
-
-        chart2.selectAll("*").remove();
-
-        chart2.append("g")
-            .selectAll("rect")
-            .data(filteredData)
-            .join("rect")
-            .attr("class", "bar")
-            .attr("x", d => xScale2(d.name))
-            .attr("y", d => yScale2(d[attribute]))
-            .attr("width", xScale2.bandwidth())
-            .attr("height", d => yScale2(0) - yScale2(d[attribute]));
-
-        chart2.append("g")
-            .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(xScale2))
-            .selectAll("text")
-            .attr("transform", "rotate(-90)")
-            .attr("x", -5)
-            .attr("y", -5)
-            .style("text-anchor", "end");
-
-        chart2.append("g")
-            .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(yScale2).tickFormat(d3.format("~s")));
-    }
+    svg.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(yScale));
 }
 
-// Create map
+//create map
 function createMap(data) {
     const map = L.map("map").setView([20, 0], 2);
 
