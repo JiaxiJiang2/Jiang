@@ -6,7 +6,7 @@ const jsonFile = "data/world_data.json";
 let currentAttribute1 = "birth rate per 1000";
 let currentAttribute2 = "gdp_per_capita";
 
-const markersMap = new Map(); //save mapmaker
+const markersMap = new Map(); // 保存地图标记
 
 document.addEventListener("DOMContentLoaded", () => {
     // load csv data
@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         d3.csv(csvFile).then(dataCSV => {
             dataCSV = cleanData(dataCSV);
             updateBarChart(dataCSV, d3.select("#bar1"), currentAttribute1);
+            updateMapPopups(dataCSV);
         }).catch(err => console.error("update charts1 error", err));
     });
 
@@ -44,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
         d3.json(jsonFile).then(dataJSON => {
             dataJSON = cleanData(dataJSON);
             updateBarChart(dataJSON, d3.select("#bar2"), currentAttribute2);
+            updateMapPopups(dataJSON);
         }).catch(err => console.error("update charts2 error", err));
     });
 });
@@ -128,33 +130,11 @@ function updateBarChart(data, svg, attribute) {
         .attr("fill", "grey")
         .on("mouseover", (event, d) => {
             d3.select(event.currentTarget).attr("fill", "blue");
-
-            d3.selectAll(".bar").filter(bar => bar.name === d.name)
-                .attr("fill", "blue");
-
-            if (markersMap.has(d.name)) {
-                markersMap.get(d.name).setIcon(L.icon({
-                    iconUrl: 'data/location-pin-hover.png',
-                    iconSize: [35, 35],
-                    iconAnchor: [17, 35],
-                    popupAnchor: [0, -35]
-                }));
-            }
+            highlightMarker(d.name, true);
         })
         .on("mouseout", (event, d) => {
             d3.select(event.currentTarget).attr("fill", "grey");
-
-            d3.selectAll(".bar").filter(bar => bar.name === d.name)
-                .attr("fill", "grey");
-
-            if (markersMap.has(d.name)) {
-                markersMap.get(d.name).setIcon(L.icon({
-                    iconUrl: 'data/location-pin.png',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 30],
-                    popupAnchor: [0, -30]
-                }));
-            }
+            highlightMarker(d.name, false);
         });
 
     svg.append("g")
@@ -194,26 +174,62 @@ function createMap(data) {
             const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
             markersMap.set(country.name, marker);
 
-            marker.bindPopup(`<b>${country.name}</b>`);
+            marker.bindPopup(() => {
+                const value1 = country[currentAttribute1] || "N/A";
+                const value2 = country[currentAttribute2] || "N/A";
+
+                return `
+                    <div>
+                        <b>${country.name}</b><br>
+                        ${currentAttribute1}: <b>${value1}</b><br>
+                        ${currentAttribute2}: <b>${value2}</b>
+                    </div>
+                `;
+            });
 
             marker.on("mouseover", () => {
-                marker.setIcon(L.icon({
-                    iconUrl: 'data/location-pin-hover.png',
-                    iconSize: [35, 35],
-                    iconAnchor: [17, 35],
-                    popupAnchor: [0, -35]
-                }));
-
-                d3.selectAll(".bar").filter(bar => bar.name === country.name)
-                    .attr("fill", "blue");
+                highlightBar(country.name, true);
+                highlightMarker(country.name, true);
             });
 
             marker.on("mouseout", () => {
-                marker.setIcon(customIcon);
-
-                d3.selectAll(".bar").filter(bar => bar.name === country.name)
-                    .attr("fill", "grey");
+                highlightBar(country.name, false);
+                highlightMarker(country.name, false);
             });
         }
+    });
+}
+
+function highlightMarker(countryName, highlight) {
+    const marker = markersMap.get(countryName);
+    if (marker) {
+        marker.setIcon(L.icon({
+            iconUrl: highlight ? 'data/location-pin-hover.png' : 'data/location-pin.png',
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -30]
+        }));
+    }
+}
+
+function highlightBar(countryName, highlight) {
+    d3.selectAll(".bar").filter(d => d.name === countryName)
+        .attr("fill", highlight ? "blue" : "grey");
+}
+
+//map popup window
+function updateMapPopups(data) {
+    markersMap.forEach((marker, countryName) => {
+        const country = data.find(d => d.name === countryName);
+        const value1 = country ? country[currentAttribute1] : "N/A";
+        const value2 = country ? country[currentAttribute2] : "N/A";
+
+        marker.setPopupContent(`
+            <div>
+                <b>${countryName}</b><br>
+                ${currentAttribute1}: <b>${value1}</b><br>
+                ${currentAttribute2}: <b>${value2}</b>
+            </div>
+        `);
     });
 }
