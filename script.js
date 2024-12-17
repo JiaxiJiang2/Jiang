@@ -115,15 +115,30 @@ function updateBarChart(data, svg, attribute) {
     svg.attr("width", width).attr("height", height).selectAll("*").remove();
 
     svg.append("g")
-        .selectAll("rect")
-        .data(filteredData)
-        .join("rect")
-        .attr("class", "bar")
-        .attr("x", d => xScale(d.name))
-        .attr("y", d => yScale(d[attribute]))
-        .attr("height", d => yScale(0) - yScale(d[attribute]))
-        .attr("width", xScale.bandwidth())
-        .attr("fill", "steelblue");
+    .selectAll("rect")
+    .data(filteredData)
+    .join("rect")
+    .attr("class", "bar")
+    .attr("x", d => xScale(d.name))
+    .attr("y", d => yScale(d[attribute]))
+    .attr("height", d => yScale(0) - yScale(d[attribute]))
+    .attr("width", xScale.bandwidth())
+    .attr("fill", "grey")
+    .on("mouseover", (event, d) => {
+        // mouse -> blue
+        d3.select(event.currentTarget).attr("fill", "blue");
+
+        d3.selectAll(".bar").filter(bar => bar.name === d.name)
+            .attr("fill", "blue");
+            
+        })
+    .on("mouseout", (event, d) => {
+        d3.select(event.currentTarget).attr("fill", "grey");
+
+        d3.selectAll(".bar").filter(bar => bar.name === d.name)
+            .attr("fill", "grey");
+    });
+
 
     svg.append("g")
         .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -139,25 +154,43 @@ function updateBarChart(data, svg, attribute) {
         .call(d3.axisLeft(yScale));
 }
 
-//create map
 function createMap(data) {
     const map = L.map("map").setView([20, 0], 2);
 
+    //map
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    //location-pin
+    const customIcon = L.icon({
+        iconUrl: 'data/location-pin.png', 
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+    });
+
     data.forEach(country => {
         const lat = +country.gps_lat;
         const lon = +country.gps_long;
-        const value = country[currentAttribute1] || "N/A";
 
         if (!isNaN(lat) && !isNaN(lon)) {
-            const marker = L.marker([lat, lon]).addTo(map);
-            marker.bindPopup(`
-                <b>${country.name}</b><br>
-                ${currentAttribute1}: ${value}
-            `);
+            const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
+
+            marker.bindPopup(`<b>${country.name}</b>`);
+
+            marker.on("mouseover", () => {
+                marker.setIcon(L.icon({
+                    iconUrl: 'data/location-pin-hover.png',
+                    iconSize: [35, 35],
+                    iconAnchor: [17, 35],
+                    popupAnchor: [0, -35]
+                }));
+            });
+
+            marker.on("mouseout", () => {
+                marker.setIcon(customIcon);
+            });
         }
     });
 }
