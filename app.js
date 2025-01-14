@@ -88,10 +88,13 @@ app.post('/api/items', (req, res) => {
     if (!newItem.name) {
         return res.status(400).send('Invalid input: name is required');
     }
-    const newId = (records.length ? parseInt(records[records.length - 1].id) + 1 : 1).toString();
+    const lastId = records.length > 0
+        ? Math.max(...records.map(r => parseInt(r.id || '0', 10)))
+        : 0;
+    const newId = (lastId + 1).toString().padStart(3, '0');
     const item = { id: newId, ...newItem };
     records.push(item);
-    res.status(201).send(`Added country ${item.name} to the list!`);
+    res.status(201).send(`Added country ${item.name} with ID ${item.id} to the list!`);
 });
 
 // "/api/items": POST add new item

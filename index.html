@@ -110,8 +110,20 @@
 				<h2 class="mb-3 mt-5">Delete Last Data Entry/Country</h2>
 				<button type="submit" class="btn btn-primary" id="delete_submit">Show result</button>
 				<h2 class="mt-5">Result</h2>
-				<div class="alert alert-info" role="alert" id="delete_info" style="display: none; visibility: hidden;">
-				</div>				
+				<table class="table mt-3">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Country</th>
+							<th>birth rate / 1000</th>
+							<th>cellphones / 100</th>
+							<th>children / woman</th>
+							<th>electric usage / capita</th>
+							<th>internet user / 100</th>
+						</tr>
+					</thead>
+					<tbody id="delete_country_tablebody"></tbody>
+				</table>
 			</div>
 			<div class="tab-pane fade" id="add-country-tab-pane" role="tabpanel" aria-labelledby="add-country-tab" tabindex="0">
 				<h2 class="mt-5">Add Data Item/Country</h2>
@@ -121,7 +133,20 @@
 				</div>
 				<button type="submit" class="btn btn-primary" id="add_country_submit">Show result</button>
 				<h2 class="mt-5">Result</h2>
-				<div class="alert alert-info" role="alert" id="add_info" style="display: none; visibility: hidden;"></div>
+				<table class="table mt-3">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Country</th>
+							<th>birth rate / 1000</th>
+							<th>cellphones / 100</th>
+							<th>children / woman</th>
+							<th>electric usage / capita</th>
+							<th>internet user / 100</th>
+						</tr>
+					</thead>
+					<tbody id="add_country_tablebody"></tbody>
+				</table>
 			</div>
 		</div><!-- /tab-content -->
 	</div><!-- /container -->
