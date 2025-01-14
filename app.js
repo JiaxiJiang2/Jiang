@@ -47,7 +47,7 @@ app.get('/api/items', (req, res) => {
 
 // "/api/items": GET single item by id
 app.get('/api/items/:id', (req, res) => {
-    const id = req.params.id;
+    const id = req.params.id.toString();
     const item = records.find(r => r.id === id);
     if (item) {
         res.status(200).json(item);
