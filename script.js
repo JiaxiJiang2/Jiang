@@ -1,235 +1,112 @@
-import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+/* ******************************************************************
+** General functions
+** ****************************************************************** */
 
-const csvFile = "data/world_data_v3.csv";
-const jsonFile = "data/world_data.json";
+/**
+ * Shows a bootstrap toast with the message msg
+ * and removes it from the DOM when it autohides.
+ * 
+ * @param {*} msg The message to display
+ */
 
-let currentAttribute1 = "birth rate per 1000";
-let currentAttribute2 = "gdp_per_capita";
+function showToast(msg) {
+	const toasts = document.querySelector("#toasts");
 
-const markersMap = new Map(); // 保存地图标记
+	const newT = document.createElement("div");
+	newT.classList.add("toast");
+	newT.setAttribute("role", "alert");
+	newT.setAttribute("aria-live", "assertive");
+	newT.setAttribute("aria-atomic", "true");
+	let inner = '<div class="d-flex">';
+	inner += '<div class="toast-body">';
+	inner += msg;
+	inner += '</div>';
+	inner += '<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>';
+	inner += '</div>';
+	newT.innerHTML = inner;
 
-document.addEventListener("DOMContentLoaded", () => {
-    // load csv data
-    d3.csv(csvFile).then(dataCSV => {
-        dataCSV = cleanData(dataCSV);
-        if (!dataCSV || dataCSV.length === 0) {
-            console.error("CSV error");
-            return;
-        }
+	newT.addEventListener('hidden.bs.toast', (e) => {
+		e.target.remove();
+	});
 
-        // load json data
-        d3.json(jsonFile).then(dataJSON => {
-            if (!dataJSON || dataJSON.length === 0) {
-                console.error("JSON error");
-                return;
-            }
+	toasts.append(newT);
+	const bootstrapToast = bootstrap.Toast.getOrCreateInstance(newT);
+	bootstrapToast.show();
+}
 
-            dataJSON = cleanData(dataJSON);
-
-            populateSelectBoxes(dataCSV, dataJSON);
-            createVisualizations(dataCSV, dataJSON);
-        }).catch(err => console.error("load json error", err));
-    }).catch(err => console.error("load csv error", err));
-
-    document.getElementById("prop_selection1").addEventListener("change", (event) => {
-        currentAttribute1 = event.target.value;
-        d3.csv(csvFile).then(dataCSV => {
-            dataCSV = cleanData(dataCSV);
-            updateBarChart(dataCSV, d3.select("#bar1"), currentAttribute1);
-            updateMapPopups(dataCSV);
-        }).catch(err => console.error("update charts1 error", err));
-    });
-
-    document.getElementById("prop_selection2").addEventListener("change", (event) => {
-        currentAttribute2 = event.target.value;
-        d3.json(jsonFile).then(dataJSON => {
-            dataJSON = cleanData(dataJSON);
-            updateBarChart(dataJSON, d3.select("#bar2"), currentAttribute2);
-            updateMapPopups(dataJSON);
-        }).catch(err => console.error("update charts2 error", err));
-    });
+/* ******************************************************************
+** ALL DATA ITEMS
+** ****************************************************************** */
+document.querySelector('#all_countries_submit').addEventListener('click', async () => {
+    const response = await fetch('/api/items');
+    const data = await response.json();
+    const tbody = document.querySelector('#all_countries_tablebody');
+    tbody.innerHTML = data.map(item => `
+        <tr>
+            <td>${item.id}</td>
+            <td>${item.name}</td>
+            <td>${item.birth_rate_per_1000}</td>
+            <td>${item.cell_phones_per_100}</td>
+            <td>${item.children_per_woman}</td>
+            <td>${item.electricity_consumption_per_capita}</td>
+            <td>${item.internet_user_per_100}</td>
+        </tr>
+    `).join('');
 });
 
-//clean data
-function cleanData(data) {
-    return data.map(d => {
-        const cleaned = {};
-        for (const key in d) {
-            const cleanKey = key.trim();
-            cleaned[cleanKey] = isNaN(+d[key]) ? d[key].trim() : +d[key];
-        }
-        return cleaned;
+
+/* ******************************************************************
+** FILTERED DATA ITEMS (single)
+** ****************************************************************** */
+document.querySelector('#filter_single_submit').addEventListener('click', async () => {
+    const id = document.querySelector('#country_filter_id').value;
+    const response = await fetch(`/api/items/${id}`);
+    const data = await response.json();
+    console.log(data);
+});
+
+/* ******************************************************************
+** FILTERED DATA ITEMS (range)
+** ****************************************************************** */
+document.querySelector('#filter_range_submit').addEventListener('click', async () => {
+    const range = document.querySelector('#country_filter_range').value;
+    const [id1, id2] = range.split('-');
+    const response = await fetch(`/api/items/${id1}/${id2}`);
+    const data = await response.json();
+    console.log(data);
+});
+
+/* ******************************************************************
+** ALL PROPERTIES
+** ****************************************************************** */
+document.querySelector('#properties_submit').addEventListener('click', async () => {
+    const response = await fetch('/api/properties');
+    const data = await response.json();
+    const list = document.querySelector('#properties_list');
+    list.innerHTML = data.map(prop => `<li class="list-group-item">${prop}</li>`).join('');
+});
+
+
+/* ******************************************************************
+** DELETE
+** ****************************************************************** */
+document.querySelector('#delete_submit').addEventListener('click', async () => {
+    const response = await fetch('/api/items', { method: 'DELETE' });
+    const message = await response.text();
+    showToast(message);
+});
+
+
+/* ******************************************************************
+** ADD
+** ****************************************************************** */
+document.querySelector('#add_country_submit').addEventListener('click', async () => {
+    const name = document.querySelector('#add_country_name').value;
+    const response = await fetch('/api/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
     });
-}
-
-//pop up window
-function populateSelectBoxes(dataCSV, dataJSON) {
-    const attributesCSV = Object.keys(dataCSV[0]).filter(attr => !["id", "name", "gps_lat", "gps_long"].includes(attr));
-    const attributesJSON = Object.keys(dataJSON[0]).filter(attr => !["id", "name", "gps_lat", "gps_long"].includes(attr));
-
-    const select1 = document.getElementById("prop_selection1");
-    const select2 = document.getElementById("prop_selection2");
-
-    select1.innerHTML = "";
-    select2.innerHTML = "";
-
-    attributesCSV.forEach(attr => {
-        const option = document.createElement("option");
-        option.value = attr;
-        option.textContent = attr;
-        select1.appendChild(option);
-    });
-
-    attributesJSON.forEach(attr => {
-        const option = document.createElement("option");
-        option.value = attr;
-        option.textContent = attr;
-        select2.appendChild(option);
-    });
-
-    select1.value = currentAttribute1;
-    select2.value = currentAttribute2;
-}
-
-// visualisierung
-function createVisualizations(dataCSV, dataJSON) {
-    updateBarChart(dataCSV, d3.select("#bar1"), currentAttribute1);
-    updateBarChart(dataJSON, d3.select("#bar2"), currentAttribute2);
-    createMap(dataCSV);
-}
-
-// update charts
-function updateBarChart(data, svg, attribute) {
-    const width = 500;
-    const height = 250;
-    const margin = { top: 20, right: 20, bottom: 130, left: 50 };
-
-    const filteredData = data.filter(d => d[attribute] !== undefined && d[attribute] !== null);
-
-    const xScale = d3.scaleBand()
-        .domain(filteredData.map(d => d.name))
-        .range([margin.left, width - margin.right])
-        .padding(0.2);
-
-    const yScale = d3.scaleLinear()
-        .domain([0, d3.max(filteredData, d => d[attribute])])
-        .nice()
-        .range([height - margin.bottom, margin.top]);
-
-    svg.attr("width", width).attr("height", height).selectAll("*").remove();
-
-    svg.append("g")
-        .selectAll("rect")
-        .data(filteredData)
-        .join("rect")
-        .attr("class", "bar")
-        .attr("x", d => xScale(d.name))
-        .attr("y", d => yScale(d[attribute]))
-        .attr("height", d => yScale(0) - yScale(d[attribute]))
-        .attr("width", xScale.bandwidth())
-        .attr("fill", "grey")
-        .on("mouseover", (event, d) => {
-            d3.select(event.currentTarget).attr("fill", "blue");
-            highlightMarker(d.name, true);
-        })
-        .on("mouseout", (event, d) => {
-            d3.select(event.currentTarget).attr("fill", "grey");
-            highlightMarker(d.name, false);
-        });
-
-    svg.append("g")
-        .attr("transform", `translate(0,${height - margin.bottom})`)
-        .call(d3.axisBottom(xScale).tickSizeOuter(0))
-        .selectAll("text")
-        .attr("transform", "rotate(-90)")
-        .attr("x", -5)
-        .attr("y", -5)
-        .style("text-anchor", "end");
-
-    svg.append("g")
-        .attr("transform", `translate(${margin.left},0)`)
-        .call(d3.axisLeft(yScale));
-}
-
-//create map
-function createMap(data) {
-    const map = L.map("map").setView([20, 0], 2);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    const customIcon = L.icon({
-        iconUrl: 'data/location-pin.png',
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
-        popupAnchor: [0, -30]
-    });
-
-    data.forEach(country => {
-        const lat = +country.gps_lat;
-        const lon = +country.gps_long;
-
-        if (!isNaN(lat) && !isNaN(lon)) {
-            const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
-            markersMap.set(country.name, marker);
-
-            marker.bindPopup(() => {
-                const value1 = country[currentAttribute1] || "N/A";
-                const value2 = country[currentAttribute2] || "N/A";
-
-                return `
-                    <div>
-                        <b>${country.name}</b><br>
-                        ${currentAttribute1}: <b>${value1}</b><br>
-                        ${currentAttribute2}: <b>${value2}</b>
-                    </div>
-                `;
-            });
-
-            marker.on("mouseover", () => {
-                highlightBar(country.name, true);
-                highlightMarker(country.name, true);
-            });
-
-            marker.on("mouseout", () => {
-                highlightBar(country.name, false);
-                highlightMarker(country.name, false);
-            });
-        }
-    });
-}
-
-function highlightMarker(countryName, highlight) {
-    const marker = markersMap.get(countryName);
-    if (marker) {
-        marker.setIcon(L.icon({
-            iconUrl: highlight ? 'data/location-pin-hover.png' : 'data/location-pin.png',
-            iconSize: [30, 30],
-            iconAnchor: [15, 30],
-            popupAnchor: [0, -30]
-        }));
-    }
-}
-
-function highlightBar(countryName, highlight) {
-    d3.selectAll(".bar").filter(d => d.name === countryName)
-        .attr("fill", highlight ? "blue" : "grey");
-}
-
-//map popup window
-function updateMapPopups(data) {
-    markersMap.forEach((marker, countryName) => {
-        const country = data.find(d => d.name === countryName);
-        const value1 = country ? country[currentAttribute1] : "N/A";
-        const value2 = country ? country[currentAttribute2] : "N/A";
-
-        marker.setPopupContent(`
-            <div>
-                <b>${countryName}</b><br>
-                ${currentAttribute1}: <b>${value1}</b><br>
-                ${currentAttribute2}: <b>${value2}</b>
-            </div>
-        `);
-    });
-}
+    const message = await response.text();
+    showToast(message);
+});
