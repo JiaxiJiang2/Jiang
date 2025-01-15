@@ -60,23 +60,39 @@ function updateTable(tableId, data) {
 ** ****************************************************************** */
 let initialData = [];
 document.addEventListener('DOMContentLoaded', async () => {
-    const response = await fetch('/api/items');
-    initialData = await response.json();
+    try {
+        const response = await fetch('/api/items');
+        const data = await response.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+            initialData = data;
+            updateTable('all_countries_tablebody', data);
+        } else {
+            showToast('No data available.');
+        }
+    } catch (error) {
+        showToast('Failed to load initial data.');
+    }
 });
 
 /* ******************************************************************
 ** ALL DATA ITEMS
 ** ****************************************************************** */
-document.querySelector('#all_countries_submit').addEventListener('click', async () => {
-    const response = await fetch('/api/items');
-    const data = await response.json();
-    updateTable('all_countries_tablebody', data);
-	updateTable('delete_country_tablebody', initialData);
-	updateTable('add_country_tablebody', initialData);
-});
+document.querySelector('#all_countries_reset').addEventListener('click', async () => {
+    const response = await fetch('/api/reset', { method: 'POST' });
+    const message = await response.text();
 
-document.querySelector('#all_countries_reset').addEventListener('click', () => {
-    updateTable('all_countries_tablebody', initialData);
+    if (response.status === 200) {
+        const dataResponse = await fetch('/api/items');
+        const data = await dataResponse.json();
+        initialData = data;
+        updateTable('all_countries_tablebody', data);
+        updateTable('delete_country_tablebody', data);
+        updateTable('add_country_tablebody', data);
+        showToast(message);
+    } else {
+        showToast(message);
+    }
 });
 
 /* ******************************************************************

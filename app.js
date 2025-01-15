@@ -47,7 +47,11 @@ app.get('/api/items', (req, res) => {
 
 // "/api/items": GET single item by id
 app.get('/api/items/:id', (req, res) => {
-    const id = req.params.id.toString();
+    let id = req.params.id.toString();
+    if (!isNaN(id)) {
+        id = parseInt(id).toString().padStart(3, '0');
+    }
+
     const item = records.find(r => r.id === id);
     if (item) {
         res.status(200).json(item);
@@ -104,5 +108,15 @@ app.delete('/api/items', (req, res) => {
         res.status(200).send(`Deleted last country: ${deleted.name}!`);
     } else {
         res.status(205).send('No items to delete');
+    }
+});
+
+// "/api/reset": Reset the data to initial state
+app.post('/api/reset', async (req, res) => {
+    try {
+        records = await csv({ delimiter: ';' }).fromFile(csvFilePath); // 重新加载数据
+        res.status(200).send('Data has been reset to its initial state.');
+    } catch (error) {
+        res.status(500).send('Failed to reset data.');
     }
 });
