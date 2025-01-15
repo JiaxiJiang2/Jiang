@@ -1,6 +1,7 @@
 #include "cinder/app/App.h"
-#include "cinder/app/RendererGl.h" 
+#include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
+#include "cinder/params/Params.h" // 引入Cinder参数窗口的支持
 #include "DMXPro.hpp"
 
 using namespace ci;
@@ -9,7 +10,7 @@ using namespace ci::app;
 class BasicApp : public App {
 public:
     void mouseDrag(MouseEvent event) override;
-    void keyDown(KeyEvent event) override;
+    void keyDown(KeyEvent event) override;                                                                   
     void draw() override;
     void update() override;
     void setup() override;
@@ -18,10 +19,15 @@ private:
     std::vector<vec2> mPointsLeft;
     std::vector<vec2> mPointsRight;
     DMXProRef mDmxDevice;
-    float mPan = 0.0f;
-    float mTilt = 0.0f;
+    float mPan = 0.0f; //  Pan 值
+    float mTilt = 0.0f; // 当前 Tilt 值
+    float mPanOffset = 0.0f; // 相对 Pan 偏移量
+    float mTiltOffset = 0.0f; // 相对 Tilt 偏移量
     int startAddress = 360;
     Color mCurrentColor = Color(1.0f, 1.0f, 1.0f); // Default white color
+
+    // 参数窗口
+    params::InterfaceGlRef mParams;
 };
 
 void prepareSettings(BasicApp::Settings* settings)
@@ -120,15 +126,46 @@ void BasicApp::keyDown(KeyEvent event)
     }
 }
 
-void BasicApp::draw()
-{
-    gl::clear(Color::gray(0.1f));
+void BasicApp::setup() {
+    // 初始化 DMX 设备
+    DMXPro::listDevices();
+    std::vector<std::string> devices = DMXPro::getDevicesList();
+    if (!devices.empty()) {
+        mDmxDevice = DMXPro::create(devices[0]);
+        mDmxDevice->setValue(5, startAddress + 5);
+    }
 
-    // Draw dividing line
+    // 创建参数窗口
+    mParams = params::InterfaceGl::create("Light Control", ivec2(200, 150));
+
+    // 新增 Pan 和 Tilt 数值输入框
+    mParams->addParam("Pan Value", &mPan).min(0.0f).max(255.0f).step(1.0f).updateFn([this]() {
+        if (mDmxDevice) {
+            mDmxDevice->setValue(static_cast<int>(mPan), startAddress + 0);
+        }
+        });
+
+    mParams->addParam("Tilt Value", &mTilt).min(0.0f).max(255.0f).step(1.0f).updateFn([this]() {
+        if (mDmxDevice) {
+            mDmxDevice->setValue(static_cast<int>(mTilt), startAddress + 2);
+        }
+        });
+}
+
+
+
+void BasicApp::update() {
+    // 可以在这里添加需要持续更新的代码
+}
+
+void BasicApp::draw() {
+    gl::clear(Color::gray(0.1f)); // 清空背景
+
+    // 绘制分割线
     gl::color(Color::white());
     gl::drawLine(vec2(getWindowWidth() / 2, 0), vec2(getWindowWidth() / 2, getWindowHeight()));
 
-    // Draw lines for left points
+    // 绘制左侧点的轨迹
     gl::color(Color(0.8f, 0.8f, 0.8f));
     gl::begin(GL_LINE_STRIP);
     for (const vec2& point : mPointsLeft) {
@@ -136,29 +173,15 @@ void BasicApp::draw()
     }
     gl::end();
 
-    // Draw lines for right points
+    // 绘制右侧点的轨迹
     gl::color(mCurrentColor);
     gl::begin(GL_LINE_STRIP);
     for (const vec2& point : mPointsRight) {
         gl::vertex(point);
     }
     gl::end();
-}
 
-void BasicApp::update()
-{
-    // Optional: Add any continuous updates if required
-}
-
-void BasicApp::setup()
-{
-    DMXPro::listDevices();
-    std::vector<std::string> devices = DMXPro::getDevicesList();
-    if (!devices.empty()) {
-        mDmxDevice = DMXPro::create(devices[0]);
-        mDmxDevice->setValue(5, startAddress + 5);
-        mDmxDevice->setValue(70, startAddress + 10); // Initialize color
-    }
+    mParams->draw(); // 绘制参数窗口
 }
 
 CINDER_APP(BasicApp, RendererGl, prepareSettings)
