@@ -1,4 +1,4 @@
-#include "cinder/app/App.h"
+﻿#include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
@@ -23,8 +23,8 @@ public:
 private:
     vector<pair<vec2, double>> mPointsWithTime;
     DMXProRef mDmxDevice;
-    float mPan = 127.0f;  // Initial pan set to horizontal
-    float mTilt = 127.0f; // Initial tilt set to horizontal
+    float mPan = 127.0f;  // Initial pan (horizontal)
+    float mTilt = 127.0f; // Initial tilt (upwards)
     int startAddress = 360;
     Color mCurrentColor = Color(1.0f, 1.0f, 1.0f); // Default white color
     params::InterfaceGlRef mParams;
@@ -43,26 +43,31 @@ void CinderProjectApp::setup() {
     vector<string> devices = DMXPro::getDevicesList();
     if (!devices.empty()) {
         mDmxDevice = DMXPro::create(devices[0]);
-        // Set initial light direction to horizontal
-        mDmxDevice->setValue(static_cast<int>(mPan), startAddress);
-        mDmxDevice->setValue(static_cast<int>(mTilt), startAddress + 2);
+
+        // 🔥 Force light ON at startup 🔥
+        mDmxDevice->setValue(255, startAddress + 10); // Master Dimmer (Brightness ON)
+        mDmxDevice->setValue(255, startAddress + 7); // Red Channel (White Light)
+        mDmxDevice->setValue(255, startAddress + 8); // Green Channel (White Light)
+        mDmxDevice->setValue(255, startAddress + 9); // Blue Channel (White Light)
+
+        console() << "DMX Light Forced ON at Startup (White Light)" << endl;
     }
 
-    // Set up GUI parameters for manual control
+    // GUI Controls
     mParams = params::InterfaceGl::create("Light Control", ivec2(250, 200));
     mParams->addParam("Pan", &mPan).min(0.0f).max(255.0f).step(1.0f);
-    mParams->addParam("Tilt", &mTilt).min(127.0f).max(255.0f).step(1.0f); // Restrict tilt >= 127
+    mParams->addParam("Tilt", &mTilt).min(0.0f).max(255.0f).step(1.0f);
 
-    // Start WebSocket server
+    // WebSocket Server Setup
     mWebSocketServer = make_shared<WebSocketServer>();
     mWebSocketServer->listen(9002);
     console() << "WebSocket server started on port 9002" << endl;
 
-    // Connect message handler for WebSocket
+    // Handle WebSocket messages
     mWebSocketServer->connectMessageEventHandler([this](const string& msg) {
         console() << "Received WebSocket message: " << msg << endl;
         processWebSocketMessage(msg);
-    });
+        });
 
     console() << "Setup complete." << endl;
 }
@@ -75,7 +80,7 @@ void CinderProjectApp::mouseDrag(MouseEvent event) {
     float normalizedY = static_cast<float>(currentPos.y) / getWindowHeight();
 
     mPan = normalizedX * 255.0f;
-    mTilt = max(normalizedY * 255.0f, 127.0f); // Ensure tilt >= 127
+    mTilt = normalizedY * 255.0f;
 
     if (mDmxDevice) {
         mDmxDevice->setValue(static_cast<int>(mPan), startAddress);
@@ -86,7 +91,8 @@ void CinderProjectApp::mouseDrag(MouseEvent event) {
 void CinderProjectApp::keyDown(KeyEvent event) {
     if (event.getChar() == 'f') {
         setFullScreen(!isFullScreen());
-    } else if (event.getCode() == KeyEvent::KEY_ESCAPE) {
+    }
+    else if (event.getCode() == KeyEvent::KEY_ESCAPE) {
         quit();
     }
 }
@@ -110,40 +116,86 @@ void CinderProjectApp::draw() {
     mParams->draw();
 }
 
-// Updates light color based on the received message
+// Updates the DMX light color
 void CinderProjectApp::setLightColor(const string& color) {
     if (mDmxDevice) {
+
+        mDmxDevice->setValue(255, startAddress + 10);
+
         if (color == "red") {
-            mDmxDevice->setValue(255, startAddress + 1);  // Red channel
-            mDmxDevice->setValue(0, startAddress + 2);
-            mDmxDevice->setValue(0, startAddress + 3);
-            mCurrentColor = Color(1, 0, 0);
-        } else if (color == "green") {
-            mDmxDevice->setValue(0, startAddress + 1);
-            mDmxDevice->setValue(255, startAddress + 2);  // Green channel
-            mDmxDevice->setValue(0, startAddress + 3);
-            mCurrentColor = Color(0, 1, 0);
-        } else if (color == "blue") {
-            mDmxDevice->setValue(0, startAddress + 1);
-            mDmxDevice->setValue(0, startAddress + 2);
-            mDmxDevice->setValue(255, startAddress + 3);  // Blue channel
-            mCurrentColor = Color(0, 0, 1);
-        } else if (color == "white") {
-            mDmxDevice->setValue(255, startAddress + 1);
-            mDmxDevice->setValue(255, startAddress + 2);
-            mDmxDevice->setValue(255, startAddress + 3);  // White light
-            mCurrentColor = Color(1, 1, 1);
-        } else {
+            mDmxDevice->setValue(255, startAddress + 7);  // Red Channel
+            mDmxDevice->setValue(0, startAddress + 8);    // Green OFF
+            mDmxDevice->setValue(0, startAddress + 9);    // Blue OFF
+            mDmxDevice->setValue(0, startAddress + 10);   // White OFF
+        }
+        else if (color == "green") {
+            mDmxDevice->setValue(0, startAddress + 7);
+            mDmxDevice->setValue(255, startAddress + 8);  // Green Channel
+            mDmxDevice->setValue(0, startAddress + 9);
+            mDmxDevice->setValue(0, startAddress + 10);
+        }
+        else if (color == "blue") {
+            mDmxDevice->setValue(0, startAddress + 7);
+            mDmxDevice->setValue(0, startAddress + 8);
+            mDmxDevice->setValue(255, startAddress + 9);  // Blue Channel
+            mDmxDevice->setValue(0, startAddress + 10);
+        }
+        else if (color == "white") {
+            mDmxDevice->setValue(0, startAddress + 7);
+            mDmxDevice->setValue(0, startAddress + 8);
+            mDmxDevice->setValue(0, startAddress + 9);
+            mDmxDevice->setValue(255, startAddress + 10); // White Light ON
+        }
+        else {
             console() << "Unknown color command: " << color << endl;
         }
         console() << "Light color set to: " << color << endl;
     }
 }
 
-// Updates light direction (Pan/Tilt) based on hand tracking
+
+// Handles WebSocket messages
+void CinderProjectApp::processWebSocketMessage(const string& msg) {
+    console() << "Processing WebSocket message: " << msg << endl;
+
+    if (msg.find("\"type\":\"color_change\"") != string::npos) {
+        size_t startPos = msg.find("\"color\":\"");
+        if (startPos != string::npos) {
+            startPos += 9; // 跳过 `"color":"` 这9个字符
+            size_t endPos = msg.find("\"", startPos);
+            if (endPos != string::npos) {
+                string color = msg.substr(startPos, endPos - startPos);
+                console() << "Extracted Color: " << color << endl;
+                setLightColor(color);
+                return;
+            }
+        }
+    }
+    else if (msg.find("\"type\":\"light_control\"") != string::npos) {
+        size_t panPos = msg.find("\"pan\":");
+        size_t tiltPos = msg.find("\"tilt\":");
+
+        if (panPos != string::npos && tiltPos != string::npos) {
+            panPos += 6; // 跳过 `"pan":` 这6个字符
+            tiltPos += 7; // 跳过 `"tilt":` 这7个字符
+
+            float pan = stof(msg.substr(panPos, msg.find(",", panPos) - panPos));
+            float tilt = stof(msg.substr(tiltPos, msg.find("}", tiltPos) - tiltPos));
+
+            console() << "Parsed Pan: " << pan << ", Tilt: " << tilt << endl;
+            updateLightDirection(pan, tilt);
+            return;
+        }
+    }
+
+    console() << "Invalid WebSocket message received: " << msg << endl;
+}
+
+
+// Updates light direction based on WebSocket data
 void CinderProjectApp::updateLightDirection(float pan, float tilt) {
     mPan = pan;
-    mTilt = max(tilt, 127.0f);  // Ensure tilt >= 127
+    mTilt = tilt;
 
     if (mDmxDevice) {
         mDmxDevice->setValue(static_cast<int>(mPan), startAddress);
@@ -151,21 +203,6 @@ void CinderProjectApp::updateLightDirection(float pan, float tilt) {
     }
 
     console() << "Updated light direction: Pan=" << mPan << ", Tilt=" << mTilt << endl;
-}
-
-// Processes WebSocket messages and performs actions based on the message type
-void CinderProjectApp::processWebSocketMessage(const string& msg) {
-    if (msg.find("color_change") != string::npos) {
-        string color;
-        sscanf(msg.c_str(), "{\"type\":\"color_change\",\"color\":\"%s\"}", color.data());
-        setLightColor(color);
-    } else if (msg.find("light_control") != string::npos) {
-        float pan, tilt;
-        sscanf(msg.c_str(), "{\"type\":\"light_control\",\"pan\":%f,\"tilt\":%f}", &pan, &tilt);
-        updateLightDirection(pan, tilt);
-    } else {
-        console() << "Invalid WebSocket message received: " << msg << endl;
-    }
 }
 
 CINDER_APP(CinderProjectApp, RendererGl)
