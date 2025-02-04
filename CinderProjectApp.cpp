@@ -44,11 +44,11 @@ void CinderProjectApp::setup() {
     if (!devices.empty()) {
         mDmxDevice = DMXPro::create(devices[0]);
 
-        // 🔥 Force light ON at startup 🔥
-        mDmxDevice->setValue(255, startAddress + 10); // Master Dimmer (Brightness ON)
-        mDmxDevice->setValue(255, startAddress + 7); // Red Channel (White Light)
-        mDmxDevice->setValue(255, startAddress + 8); // Green Channel (White Light)
-        mDmxDevice->setValue(255, startAddress + 9); // Blue Channel (White Light)
+        //  Force light ON at startup 
+        mDmxDevice->setValue(70, startAddress + 10); // Master Dimmer (Brightness ON)
+        mDmxDevice->setValue(70, startAddress + 7); // Red Channel (White Light)
+        mDmxDevice->setValue(70, startAddress + 8); // Green Channel (White Light)
+        mDmxDevice->setValue(70, startAddress + 9); // Blue Channel (White Light)
 
         console() << "DMX Light Forced ON at Startup (White Light)" << endl;
     }
@@ -124,9 +124,9 @@ void CinderProjectApp::setLightColor(const string& color) {
 
         if (color == "red") {
             mDmxDevice->setValue(255, startAddress + 7);  // Red Channel
-            mDmxDevice->setValue(0, startAddress + 8);    // Green OFF
-            mDmxDevice->setValue(0, startAddress + 9);    // Blue OFF
-            mDmxDevice->setValue(0, startAddress + 10);   // White OFF
+            mDmxDevice->setValue(0, startAddress + 8);
+            mDmxDevice->setValue(0, startAddress + 9);
+            mDmxDevice->setValue(0, startAddress + 10);
         }
         else if (color == "green") {
             mDmxDevice->setValue(0, startAddress + 7);
@@ -144,7 +144,7 @@ void CinderProjectApp::setLightColor(const string& color) {
             mDmxDevice->setValue(0, startAddress + 7);
             mDmxDevice->setValue(0, startAddress + 8);
             mDmxDevice->setValue(0, startAddress + 9);
-            mDmxDevice->setValue(255, startAddress + 10); // White Light ON
+            mDmxDevice->setValue(255, startAddress + 10); // White Channel
         }
         else {
             console() << "Unknown color command: " << color << endl;
@@ -161,7 +161,7 @@ void CinderProjectApp::processWebSocketMessage(const string& msg) {
     if (msg.find("\"type\":\"color_change\"") != string::npos) {
         size_t startPos = msg.find("\"color\":\"");
         if (startPos != string::npos) {
-            startPos += 9; // 跳过 `"color":"` 这9个字符
+            startPos += 9;
             size_t endPos = msg.find("\"", startPos);
             if (endPos != string::npos) {
                 string color = msg.substr(startPos, endPos - startPos);
@@ -176,8 +176,8 @@ void CinderProjectApp::processWebSocketMessage(const string& msg) {
         size_t tiltPos = msg.find("\"tilt\":");
 
         if (panPos != string::npos && tiltPos != string::npos) {
-            panPos += 6; // 跳过 `"pan":` 这6个字符
-            tiltPos += 7; // 跳过 `"tilt":` 这7个字符
+            panPos += 6;
+            tiltPos += 7;
 
             float pan = stof(msg.substr(panPos, msg.find(",", panPos) - panPos));
             float tilt = stof(msg.substr(tiltPos, msg.find("}", tiltPos) - tiltPos));
